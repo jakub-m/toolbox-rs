@@ -20,9 +20,10 @@ const YELLOW_CIRCLE: char = char::from_u32(0x1F7E1).unwrap();
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let pg_schedule_id = env::var("PG_SCHEDULE_ID")?;
-    let pg_auth_token = env::var("PG_AUTH_TOKEN")?;
-    let pg_user = env::var("PG_USER")?;
+    let pg_schedule_id = env_var("PG_SCHEDULE_ID")?;
+    let pg_auth_token = env_var("PG_AUTH_TOKEN")?;
+    let pg_user = env_var("PG_USER")?;
+    let pg_icons = env_var("PG_ICONS").unwrap_or("".to_owned());
     let now = Utc::now();
     let is_oncall_now = check_if_user_on_call(
         now,
@@ -42,12 +43,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     )
     .await?;
 
+    let (icon_on_duty, icon_incoming_on_duty, icon_not_on_duty) = get_icons(&pg_icons);
+
     if is_oncall_now {
-        println!("PG {}", GREEN_CIRCLE);
+        println!("PG {icon_on_duty}");
     } else if is_oncall_next_24h {
-        println!("PG {}", YELLOW_CIRCLE);
+        println!("PG {icon_incoming_on_duty}");
     } else {
-        println!("PG {}", DOTTED_CIRCLE);
+        println!("PG {icon_not_on_duty}");
     }
 
     Ok(())
@@ -80,4 +83,17 @@ async fn check_if_user_on_call(
     let parsed: UsersWrapper = serde_json::from_str(&response_body).unwrap();
     let is_oncall = parsed.users.iter().any(|user| user.name == pg_user);
     Ok(is_oncall)
+}
+
+fn env_var(name: &str) -> Result<String, String> {
+    env::var(name).map_err(|_| format!("Missing env var: {name}"))
+}
+
+fn get_icons(icons: &str) -> (char, char, char) {
+    let icons: Vec<char> = icons.chars().collect();
+    (
+        *icons.get(0).unwrap_or(&GREEN_CIRCLE),
+        *icons.get(1).unwrap_or(&YELLOW_CIRCLE),
+        *icons.get(2).unwrap_or(&DOTTED_CIRCLE),
+    )
 }

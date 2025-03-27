@@ -22,5 +22,8 @@ fi
 set -a
 source "${config_file}"
 set +a
-# cargo run
-exec "${SCRIPT_DIR}/target/release/pagerduty-xbar"
+if [[ -e Cargo.toml ]]; then
+  cargo run
+else
+  exec "${SCRIPT_DIR}/target/release/pagerduty-xbar"
+fi

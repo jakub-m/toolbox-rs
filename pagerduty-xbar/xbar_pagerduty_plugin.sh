@@ -6,5 +6,6 @@
 # <xbar.author.github>jakub-m</xbar.author.github>
 # <xbar.desc>Show PagerDuty status.</xbar.desc>
 
-# !!! Set this to the full path of the script
+# !!! Set this to the full path of the script:
+# !!! echo $PWD/xbar_pagerduty_plugin.sh
 exec ./xbar_pagerduty.sh

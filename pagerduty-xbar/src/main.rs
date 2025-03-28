@@ -1,4 +1,4 @@
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Duration, SecondsFormat, Utc};
 use reqwest::Client;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde::Deserialize;
@@ -15,8 +15,8 @@ struct User {
 }
 
 const GREEN_CIRCLE: char = char::from_u32(0x1F7E2).unwrap();
-const DOTTED_CIRCLE: char = char::from_u32(0x25CC).unwrap();
 const YELLOW_CIRCLE: char = char::from_u32(0x1F7E1).unwrap();
+const CENTER_X: char = char::from_u32(0x00D7).unwrap();
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -46,11 +46,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (icon_on_duty, icon_incoming_on_duty, icon_not_on_duty) = get_icons(&pg_icons);
 
     if is_oncall_now {
-        println!("PG {icon_on_duty}");
+        println!("pg{icon_on_duty}");
     } else if is_oncall_next_24h {
-        println!("PG {icon_incoming_on_duty}");
+        println!("pg{icon_incoming_on_duty}");
     } else {
-        println!("PG {icon_not_on_duty}");
+        println!("pg{icon_not_on_duty}");
     }
 
     Ok(())
@@ -64,8 +64,8 @@ async fn check_if_user_on_call(
     pg_schedule_id: &str,
     pg_user: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
-    let since_iso = shift_from.to_rfc3339();
-    let until_iso = shift_to.to_rfc3339();
+    let since_iso = shift_from.to_rfc3339_opts(SecondsFormat::Secs, true);
+    let until_iso = shift_to.to_rfc3339_opts(SecondsFormat::Secs, true);
     let client = Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
@@ -94,6 +94,6 @@ fn get_icons(icons: &str) -> (char, char, char) {
     (
         *icons.get(0).unwrap_or(&GREEN_CIRCLE),
         *icons.get(1).unwrap_or(&YELLOW_CIRCLE),
-        *icons.get(2).unwrap_or(&DOTTED_CIRCLE),
+        *icons.get(2).unwrap_or(&CENTER_X),
     )
 }

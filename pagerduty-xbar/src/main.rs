@@ -46,11 +46,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (icon_on_duty, icon_incoming_on_duty, icon_not_on_duty) = get_icons(&pg_icons);
 
     if is_oncall_now {
-        println!("pg{icon_on_duty}");
+        println!("{icon_on_duty}");
     } else if is_oncall_next_24h {
-        println!("pg{icon_incoming_on_duty}");
+        println!("{icon_incoming_on_duty}");
     } else {
-        println!("pg{icon_not_on_duty}");
+        println!("{icon_not_on_duty}");
     }
 
     Ok(())

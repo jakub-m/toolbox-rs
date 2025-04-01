@@ -25,5 +25,12 @@ set +a
 if [[ -e Cargo.toml ]]; then
   cargo run
 else
-  exec "${SCRIPT_DIR}/target/release/pagerduty-xbar"
+  release_file="${SCRIPT_DIR}/target/release/pagerduty-xbar"
+  if [[ -e "${release_file}" ]]; then
+    exec "${release_file}"
+  else
+    echo "⚠️"
+    echo "---"
+    echo 'target/release/pagerduty-xbar missing. Make sure to run `cargo build --release`'
+  fi
 fi

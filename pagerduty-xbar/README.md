@@ -25,5 +25,5 @@ For **development** (when run from within the git repository) the script uses
 ```sh
 $ git clone git@github.com:jakub-m/toolbox-rs.git
 $ cargo build --release
-$ ln -s $(realpath xbar_pagerduty_plugin.sh) "$HOME/Library/Application Support/xbar/plugins/pagerduty.1h.sh"
+$ ln -s $(realpath xbar_pagerduty_plugin.sh) "$HOME/Library/Application Support/xbar/plugins/pagerduty.5m.sh"
 ```

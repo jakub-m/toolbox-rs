@@ -74,7 +74,7 @@ fn is_oncall(time: DateTime<Utc>, oncalls: &[Oncall]) -> bool {
 
 fn format_readable(dt: DateTime<Utc>) -> String {
     let local: DateTime<Local> = dt.into();
-    local.format("%a %d-%b-%Y %H:%M").to_string()
+    local.format("%a %d %b %H:%M").to_string()
 }
 
 fn format_iso(dt: DateTime<Utc>) -> String {

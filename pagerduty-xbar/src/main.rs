@@ -46,14 +46,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let delta = oncall.start - now;
 
         let time_remaining = if delta <= TimeDelta::zero() {
-            "now".into()
+            format!("now, {}", format_timedelta(oncall.end - now))
         } else {
-            let days = delta.num_days();
-            if days > 0 {
-                format!("{}d", days)
-            } else {
-                "<1d".into()
-            }
+            format_timedelta(delta)
         };
 
         println!(
@@ -123,4 +118,14 @@ fn get_icons(icons: &str) -> (char, char, char) {
         *icons.get(1).unwrap_or(&YELLOW_CIRCLE),
         *icons.get(2).unwrap_or(&CENTER_X),
     )
+}
+
+fn format_timedelta(delta: TimeDelta) -> String {
+    if delta < TimeDelta::hours(1) {
+        format!("{}m", delta.num_minutes())
+    } else if delta < TimeDelta::days(1) {
+        format!("{}h", delta.num_hours())
+    } else {
+        format!("{}d", delta.num_days())
+    }
 }

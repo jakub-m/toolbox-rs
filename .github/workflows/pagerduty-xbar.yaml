@@ -1,6 +1,7 @@
 name: PagerDuty xbar
 on:
   push:
+    branches: ["*"]
     tags: [v*]
 
 jobs:

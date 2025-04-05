@@ -39,3 +39,6 @@ jobs:
           executable-name: example
           changes-file: ""
           working-directory: ./pagerduty-xbar
+          extra-files: |
+            xbar_pagerduty.sh
+            xbar_pagerduty_plugin.sh

@@ -22,8 +22,20 @@ For **development** (when run from within the git repository) the script uses
 
 ## Installation
 
+To install from source:
+
 ```sh
 $ git clone git@github.com:jakub-m/toolbox-rs.git
 $ cargo build --release
 $ ln -s $(realpath xbar_pagerduty_plugin.sh) "$HOME/Library/Application Support/xbar/plugins/pagerduty.5m.sh"
 ```
+
+If you don't have the Rust toolchain installed you can also go to [releases][releases] and grab the prebuilt binary. Then you need to extract the files, place them in one directory and execute:
+
+```sh
+ln -s $(realpath xbar_pagerduty_plugin.sh) "$HOME/Library/Application Support/xbar/plugins/pagerduty.5m.sh"
+```
+
+You can also place `xbar_pagerduty_plugin.sh` in the plugins folder manually, just make sure to change the path pointing to `xbar_pagerduty.sh`.
+
+[releases]: https://github.com/jakub-m/toolbox-rs/releases

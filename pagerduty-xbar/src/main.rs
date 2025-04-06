@@ -1,6 +1,7 @@
 use chrono::{DateTime, Duration, Local, SecondsFormat, TimeDelta, Utc};
+use clap::Parser;
 use reqwest::Client;
-use std::env;
+use tracing::{Level, debug};
 use types::{Oncall, Oncalls};
 
 mod types;
@@ -11,25 +12,35 @@ const CENTER_X: char = char::from_u32(0x00D7).unwrap();
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let pg_schedule_id = env_var("PG_SCHEDULE_ID")?;
-    let pg_auth_token = env_var("PG_AUTH_TOKEN")?;
-    let pg_user_id = env_var("PG_USER_ID")?;
-    let pg_icons = env_var("PG_ICONS").unwrap_or("".to_owned());
-    let now = Utc::now();
+    let args = Args::parse();
 
+    let log_level = if args.debug {
+        Level::DEBUG
+    } else {
+        Level::INFO
+    };
+    tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_max_level(log_level)
+        .init();
+
+    let now = Utc::now();
+    debug!("now={}", &now.to_rfc3339());
     let oncalls = get_oncalls(
         now,
         now + Duration::days(14),
-        &pg_auth_token,
-        &pg_schedule_id,
-        &pg_user_id,
+        &args.auth_token,
+        &args.schedule_id,
+        &args.user_id,
     )
     .await?;
 
     let is_oncall_now = is_oncall(now, &oncalls);
+    debug!("is_oncall_now={is_oncall_now}");
     let is_oncall_next_24h = is_oncall(now + Duration::days(1), &oncalls);
+    debug!("is_oncall_next_24h={is_oncall_next_24h}");
 
-    let (icon_on_duty, icon_incoming_on_duty, icon_not_on_duty) = get_icons(&pg_icons);
+    let (icon_on_duty, icon_incoming_on_duty, icon_not_on_duty) = get_icons(&args.icons);
 
     if is_oncall_now {
         println!("{icon_on_duty}");
@@ -85,18 +96,25 @@ async fn get_oncalls(
     pg_user_id: &str,
 ) -> Result<Vec<Oncall>, Box<dyn std::error::Error>> {
     let client = Client::new();
+    let since = format_iso(from);
+    let until = format_iso(to);
+    debug!("pg_schedule_id={pg_schedule_id}");
+    debug!("pg_user_id={pg_user_id}");
+    debug!("since={since}");
+    debug!("until={until}");
     let res = client
         .get("https://api.pagerduty.com/oncalls")
         .query(&[
             ("schedule_ids[]", pg_schedule_id),
-            ("since", &format_iso(from)),
-            ("until", &format_iso(to)),
+            ("since", &since),
+            ("until", &until),
         ])
         .header("Authorization", format!("Token token={pg_auth_token}"))
         .send()
         .await?;
 
     let oncalls: Oncalls = res.json().await?;
+    debug!("Got oncalls={oncalls:?}");
 
     let user_oncalls = oncalls
         .oncalls
@@ -104,11 +122,8 @@ async fn get_oncalls(
         .filter(|o| o.user.id == pg_user_id)
         .collect();
 
+    debug!("User oncalls={user_oncalls:?}");
     Ok(user_oncalls)
-}
-
-fn env_var(name: &str) -> Result<String, String> {
-    env::var(name).map_err(|_| format!("Missing env var: {name}"))
 }
 
 fn get_icons(icons: &str) -> (char, char, char) {
@@ -128,4 +143,19 @@ fn format_timedelta(delta: TimeDelta) -> String {
     } else {
         format!("{}d", delta.num_days())
     }
+}
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[arg(short, long, default_value_t = false)]
+    debug: bool,
+    #[arg(long, env = "PG_SCHEDULE_ID")]
+    schedule_id: String,
+    #[arg(long, env = "PG_AUTH_TOKEN")]
+    auth_token: String,
+    #[arg(long, env = "PG_USER_ID")]
+    user_id: String,
+    #[arg(long, env = "PG_ICONS", default_value_t = String::from(""))]
+    icons: String,
 }

@@ -23,7 +23,7 @@ set -a
 source "${config_file}"
 set +a
 if [[ -e Cargo.toml ]]; then
-  cargo run
+  cargo run -- "$@"
 else
   release_file="${SCRIPT_DIR}/target/release/pagerduty-xbar"
   if [[ -e "${release_file}" ]]; then

@@ -22,8 +22,23 @@ For **development** (when run from within the git repository) the script uses
 
 ## Installation
 
+### From source
+
 ```sh
 $ git clone git@github.com:jakub-m/toolbox-rs.git
 $ cargo build --release
 $ ln -s $(realpath xbar_pagerduty_plugin.sh) "$HOME/Library/Application Support/xbar/plugins/pagerduty.5m.sh"
 ```
+
+### Releases
+If you don't have the Rust toolchain installed you can also go to [releases][releases] and grab the prebuilt binary. Then you need to extract the files, place them in one directory and execute:
+
+[releases]: https://github.com/jakub-m/toolbox-rs/releases
+
+```sh
+ln -s $(realpath xbar_pagerduty_plugin.sh) "$HOME/Library/Application Support/xbar/plugins/pagerduty.5m.sh"
+```
+
+You can also place `xbar_pagerduty_plugin.sh` in the plugins folder manually, just make sure to change the path pointing to `xbar_pagerduty.sh`.
+
+NOTE: macOS will most likely complain about untrusted binaries. To fix this go to "Privacy & Security" in System Settings and look for a warning in the "Security" section where you can choose to trust the program.

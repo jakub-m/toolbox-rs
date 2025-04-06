@@ -1,0 +1,44 @@
+name: PagerDuty xbar
+on:
+  push:
+    branches: ["*"]
+    tags: [v*]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.platform.runs-on }}
+    strategy:
+      # Using matrix with just one platform because there are other tools compatible
+      # with the xbar API and it's going to be easier to add them in the future.
+      matrix:
+        platform:
+          - os-name: macOS-aarch64
+            runs-on: macOS-latest
+            target: aarch64-apple-darwin
+            
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build binary
+        uses: houseabsolute/actions-rust-cross@v1
+        with:
+          target: ${{ matrix.platform.target }}
+          args: "--locked --release"
+          working-directory: ./pagerduty-xbar
+          strip: true
+      - name: Test - ${{ matrix.platform.os-name }}
+        uses: houseabsolute/actions-rust-cross@v1
+        with:
+          command: test
+          target: ${{ matrix.platform.target }}
+          working-directory: ./pagerduty-xbar
+      - name: Release - ${{ matrix.platform.os-name }}
+        uses: houseabsolute/actions-rust-release@v0
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          target: ${{ matrix.platform.target }}
+          executable-name: example
+          changes-file: ""
+          working-directory: ./pagerduty-xbar
+          extra-files: |
+            xbar_pagerduty.sh
+            xbar_pagerduty_plugin.sh

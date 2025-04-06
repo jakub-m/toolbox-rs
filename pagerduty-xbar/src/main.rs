@@ -35,9 +35,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     )
     .await?;
 
-    let is_oncall_now = is_oncall(now, &oncalls);
+    // Is there any oncall that already started and did not yet finished?
+    let is_oncall_now = oncalls.iter().any(|o| now >= o.start && now < o.end);
     debug!("is_oncall_now={is_oncall_now}");
-    let is_oncall_next_24h = is_oncall(now + Duration::days(1), &oncalls);
+    // Is there any oncall that starts between now and now+DT?
+    //let is_oncall_next_24h = is_oncall(now + Duration::days(1), &oncalls);
+    // ---------now----------now+1d----------
+    // --start------------------------------- no
+    // --------------start------------------- yes
+    // -----------------------------start---- no
+    let is_oncall_next_24h = oncalls
+        .iter()
+        .any(|o| o.start >= now && o.start <= now + Duration::days(1));
     debug!("is_oncall_next_24h={is_oncall_next_24h}");
 
     let (icon_on_duty, icon_incoming_on_duty, icon_not_on_duty) = get_icons(&args.icons);
@@ -72,10 +81,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
-}
-
-fn is_oncall(time: DateTime<Utc>, oncalls: &[Oncall]) -> bool {
-    oncalls.iter().any(|o| time >= o.start && time < o.end)
 }
 
 fn format_readable(dt: DateTime<Utc>) -> String {
